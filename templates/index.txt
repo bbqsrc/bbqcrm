@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<!--[if lt IE 9]>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"/>
+		<![endif]-->
+		<meta charset="UTF-8"/>
+		<meta name="robots" content="none"/>
+		
+		<title>bbqCRM &mdash; ${site} / ${page}</title>
+		<link rel="stylesheet" href="${pref}/static/bbqcrm.css" type="text/css" />
+	</head>
+	<body>
+		<div id="wrapper">
+		<nav>
+			<ul>
+				<%
+				pref_ = None
+				if not 'pref' in locals() or pref == "":
+					pref_ = '/'
+				else:
+					pref_ = pref
+				generate_nav(("Home", pref_))
+				for menu in menus:
+					generate_nav(menu[0], menu[1])
+				%>
+			</ul>
+		</nav>
+		<header>
+			<h1>bbqCRM &mdash; ${site} / ${page}</h1>
+		</header>
+		<article>
+			${content}
+			<div class="push"></div>
+		</article>
+		</div>
+		<footer>
+			<a rel="license" href="http://creativecommons.org/publicdomain/zero/1.0/">
+			<img style="position: relative; top: 3px; border-style: none;" src="http://i.creativecommons.org/p/zero/1.0/80x15.png" alt="CC0" />
+    </a>
+     &mdash; &copy; 2011 <a href="http://bbqsrc.net">Brendan Molloy</a>	
+		</footer>
+	</body>
+</html>
+
+<%def name="generate_nav(title, menu=None)">
+	<li class="trigger">
+	% if menu:
+		<menu>
+		% for k, v in menu:
+			<li><a href="${v}">${k}</a></li>
+		% endfor
+		</menu>
+	% endif
+		<a href="${title[1]}">${title[0]}</a>
+	</li>
+	
+</%def>

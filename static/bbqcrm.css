@@ -1,0 +1,115 @@
+* {
+	margin: 0
+}
+
+body, html {
+	margin: 0;
+	font: 9pt Georgia, "Times New Roman";
+    color: #444;
+	height: 100%;
+}
+
+a {
+    color: #3d1c0b;
+}
+
+/*#wrapper { 
+	width: 100%;
+	margin: 0 auto;
+	background-color: black;
+	color: white;
+}*/
+
+#wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -32px;
+}
+
+nav a {
+	color: white;
+	text-decoration: none;
+}
+
+a:hover {
+    color: #995534;
+}
+
+header {
+	clear:both;
+	padding-left: 4px;
+	padding-top: 28px;
+	padding-bottom: 4px;
+	color: white;
+	background-color: gray;
+}
+
+.push {
+	height: 1px;
+}
+
+footer {
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	height: 32px;
+	background-color: gray;
+	color: white;
+}
+
+article {
+	padding: 4px;
+}
+
+
+nav {
+	background-color: black;
+	color: white;
+	width: 100%;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+}
+
+nav ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	clear: both;
+}
+
+nav ul li.trigger {
+	padding: 6px;
+	float: left;
+	height: 10pt;
+	background-color: black;
+}
+
+/* ++ Hover menu styles */
+.trigger menu {
+    display: none;
+    position: absolute;
+    padding: 6px;
+    list-style: none;
+    background-color: gray;
+    border: solid 1px black;
+	margin-top: 18px;
+	margin-left: -6px;
+}
+
+.trigger menu li {
+    padding: 1px 5px;
+}
+
+.trigger menu li a {
+    display: block;
+}
+
+.trigger:hover {
+    background-color: gray;
+}
+
+.trigger:hover menu {
+    display: block;
+}
