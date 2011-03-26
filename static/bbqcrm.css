@@ -24,7 +24,7 @@ a {
 	min-height: 100%;
 	height: auto !important;
 	height: 100%;
-	margin: 0 auto -32px;
+	margin: 0 auto -18px;
 }
 
 nav a {
@@ -52,10 +52,20 @@ header {
 footer {
 	margin: 0;
 	padding: 0;
+	font-size: 7pt;
 	text-align: center;
-	height: 32px;
+	height: 18px;
+	width: 100%;
 	background-color: gray;
 	color: white;
+}
+
+footer p {
+	position: relative;
+	bottom: 4px;
+	margin: 0;
+	padding: 0;
+
 }
 
 article {
@@ -81,11 +91,16 @@ nav ul {
 
 nav ul li.trigger {
 	padding: 6px;
+	padding-top: 5px;
+	padding-bottom: 7px;
 	float: left;
 	height: 10pt;
 	background-color: black;
 }
 
+nav ul li.right {
+	float: right;
+}
 /* ++ Hover menu styles */
 .trigger menu {
     display: none;
@@ -94,8 +109,8 @@ nav ul li.trigger {
     list-style: none;
     background-color: gray;
     border: solid 1px black;
-	margin-top: 18px;
-	margin-left: -6px;
+	margin-top: 19px;
+	margin-left: -10px;
 }
 
 .trigger menu li {

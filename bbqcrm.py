@@ -43,21 +43,11 @@ _root      = _config.get("root", "")
 _enabled_modules = _config.get("modules", [])
 _static    = _config.get("static", _appdir+"/static")
 
-_modules = {}
-for m in _enabled_modules:
-	try:
-		_modules[m] = __import__(m)
-	except:
-		raise
-
 #-----------------#
 # Public Methods  #
 #-----------------#
-def get_menus():	
-	menus = []
-	for m in _modules:
-		menus.append(_modules[m].get_menu())
-	return menus
+def get_menus():
+	return _get_menus()
 
 @route(_root + '/')
 def index():
@@ -70,11 +60,28 @@ def index():
 #-----------------#
 # Private Methods #
 #-----------------#
+def _get_menus():	
+	menus = []
+	for m in _modules:
+		menus.append(m.get_menu())
+	return menus
 
 @get(_root + '/static/:filename')
 def _server_static(filename):
 	return static_file(filename, root=_static)
 
+#-----------------#
+#    Post Init    #
+#-----------------#
+_modules = []
+try:
+	for m in _enabled_modules:
+		_modules.append(__import__(m))
+except:
+	raise
+#-----------------#
+#  Main function  #
+#-----------------#
 if __name__ == "__main__":
 	import sys
 	print __doc__

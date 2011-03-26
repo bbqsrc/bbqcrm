@@ -1,6 +1,19 @@
 {
 	"modules": [
-		"membership"
+		"membership",
+		"mail"
 	],
-	"sitename": "Testbed"
+	"sitename": "Testbed",
+
+	"db_type": "sqlite",
+	"db_database": "bbqcrm",
+
+
+	"Mail": {
+		"smtp_host": "",
+		"smtp_port": 93,
+		"smtp_username": "",
+		"smtp_password": ""
+	}
+
 }

@@ -7,6 +7,7 @@ from mako.template import Template
 from mako.lookup import TemplateLookup
 from bbqcrm import get_menus
 
+import mailer
 import datetime
 import json
 import os, os.path
@@ -20,7 +21,7 @@ except:
 	raise
 
 _appdir    = _config.get("appdir", os.path.dirname(__file__))
-_private   = _config.get("privdir",
+_private   = _config.get("privdir", 
 				os.path.join(os.path.dirname(__file__), "private"))
 _templates = [_config.get("templates", _appdir + '/templates')]
 _lookup    = TemplateLookup(directories=_templates)
@@ -29,8 +30,14 @@ _enabled_modules = _config.get("modules", [])
 _static    = _config.get("static", _private+"/static")
 _site      = _config.get("sitename", "Untitled")
 
-_modconf = _config.get("Membership", {})
-_modname = _modconf.get("modname", "membership")
+_modconf = _config.get("Mail", {})
+_modname = _modconf.get("modname", "mail")
+
+_smtp_host = _modconf.get("smtp_host") 
+_smtp_port = _modconf.get("smtp_port", 25)
+_smtp_user = _modconf.get("smtp_username", None)
+_smtp_pass = _modconf.get("smtp_password", None)
+
 _ = _root + "/" + _modname
 
 _engine = None
@@ -55,109 +62,73 @@ _Session = sessionmaker(bind=_engine, autoflush=True, autocommit=True)
 _SqlBase = declarative_base()
 _SqlBase.metadata.bind = _engine
 _SqlBase.metadata.create_all()
-#_session = Session()
 
 #-----------------#
 # Public Methods  #
 #-----------------#
 def get_menu():
-	return ("Membership", _), (
-		('Member list', _),
-		('Add member', _ + '/add'),
-		('Remove member', _ + '/remove'),
-		('Get member', _ + '/get')
+	return ("Mail", _), (
+		('Mail status', _),
+		('Mailing lists', _ + '/lists'),
+		('Manage mail', _ + '/manage'),
+		('Queue mail', _ + '/queue')
 	)
 
 #-----------------#
 #     Classes     #
 #-----------------#
+class _Mailing_List(_SqlBase):
+	__tablename__ = "mailing_lists"
 
-class _Member(_SqlBase):
-	__tablename__ = "members"
+	id = Column(Integer, primary_key=True)
 
-	id        = Column(Integer, primary_key=True)
-	firstname = Column(String)
-	lastname  = Column(String)
-	username  = Column(String)
-	password  = Column(String)
-	address1  = Column(String)
-	address2  = Column(String)
-	suburb    = Column(String)
-	state     = Column(String)
-	postcode  = Column(String)
-	homephone = Column(String)
-	mobile    = Column(String)
-	email     = Column(String)
-	joined    = Column(DateTime)
-	member_expires = Column(DateTime)
+	def __init__(self):
+		pass
 
-	def __init__(self, f, l, u, p, a1, a2, sub, st, post, hp, m, e):
-		self.firstname = f
-		self.lastname = l
-		self.username = u
-		self.password = p
-		self.address1 = a1
-		self.address2 = a2
-		self.suburb = suburb
-		self.state = st
-		self.postcode = post
-		self.homephone = hp
-		self.mobile = m
-		self.email = e
-		self.joined = datetime.datetime.now()
+class _Mail(_SqlBase):
+	__tablename__ = "mail"
+	
+	id = Column(Integer, primary_key=True)
+
+	def __init__(self):
+		pass
 
 #-----------------#
 # Private Methods #
 #-----------------#
-
 @route(_)
-def _membership():
+def _mail():
 	t = _lookup.get_template('index.txt')
-	page = "Membership"
-	content = "<p>Not here yet.</p>"
+	page = "Mail"
+	content = "<p>Not here yet. Add some status tables, etc.</p>"
 	out = t.render(pref=_root, site=_site, page=page, 
 		menus=get_menus(), content=content)
 	return out
 
-@route(_+"/add")
-def _add():
-	form = """
-	<form id="new_user" action="%s" method="POST">
-		Username: <input name="username" type="text" /> 
-		Password: <input name="password" type="password" />
-		<br/>
-		Given name: <input name="firstname" type="text" />
-		Surname: <input name="lastname" type="text" />
-		<br/>
-		Address: <input name="firstname" type="text" />
-		<br/>
-		<input name="firstname" type="text" />
-		<br/>
-		Suburb: <input name="suburb" type="text" />
-		State: <input name="state" type="text" />
-		Postcode: <input name="postcode" type="text" />
-		<br/>
-		Home phone (optional): <input name="homephone" type="text" />
-		Mobile phone: <input name="mobile" type="text" /><br/>
-		Email: <input name="email" type="text" /><br/>
-		<input name="submit" type="submit" value="Submit" />
-	</form>
-	""" % (_+"add")
+@route(_ + '/lists')
+def _manage_lists():
 	t = _lookup.get_template('index.txt')
-	page = "Membership / Add Member"
+	page = "Mail / Mailing Lists"
+	content = "<p>Add lists!</p>"
 	out = t.render(pref=_root, site=_site, page=page, 
-		menus=get_menus(), content=form)
+		menus=get_menus(), content=content)
 	return out
-
-@post(_+"/add")
-def _add_post():
-	#TODO add checks
-	pass
-
-@route(_+"/remove")
-def _remove():
-	return
-
-@route(_+"/get/:number")
-def _get():
-	return
+	
+@route(_ + '/manage')
+def _manage_mail():
+	t = _lookup.get_template('index.txt')
+	page = "Mail / Manage Mail"
+	content = """
+	<nav><ul>
+		<li class="trigger">
+		<menu>
+			<li><a href="#">Test</a></li>
+		</menu>
+		Test!
+		</li>
+	</ul></nav>
+	"""
+	out = t.render(pref=_root, site=_site, page=page, 
+		menus=get_menus(), content=content)
+	return out
+	
