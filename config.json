@@ -1,7 +1,8 @@
 {
 	"modules": [
 		"membership",
-		"mail"
+		"mail",
+		"money"
 	],
 	"sitename": "Testbed",
 
