@@ -20,7 +20,6 @@
 					pref_ = '/'
 				else:
 					pref_ = pref
-				generate_nav(("Home", pref_))
 				for menu in menus:
 					generate_nav(menu[0], menu[1])
 				generate_nav(("Login", "#stub"), klass="right")
@@ -55,7 +54,11 @@
 	% if menu:
 		<menu>
 		% for k, v in menu:
+			% if k == "-":
+			<hr />
+			% else:
 			<li><a href="${v}">${k}</a></li>
+			% endif:
 		% endfor
 		</menu>
 	% endif

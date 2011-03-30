@@ -5,9 +5,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from mako.template import Template
 from mako.lookup import TemplateLookup
-from bbqcrm import get_menus, template_index
+from bbqcrm.core import get_menus, template_index
 
-import mailer
 import datetime
 import json
 import os, os.path
@@ -21,9 +20,9 @@ try:
 except:
 	raise
 
-_appdir    = _config.get("appdir", os.path.dirname(__file__))
+_appdir    = _config.get("appdir", _path)
 _private   = _config.get("privdir", 
-				os.path.join(os.path.dirname(__file__), "private"))
+				os.path.join(_path, "private"))
 _templates = [_config.get("templates", _appdir + '/templates')]
 _lookup    = TemplateLookup(directories=_templates)
 _root      = _config.get("root", "")
@@ -51,7 +50,8 @@ try:
 	_db_port     = _config.get("db_port", None)
 	_db_table    = _modname
 	if _db_engine == "sqlite":
-		_engine = create_engine("sqlite:///%s" % (_private+_db_database+".db"))
+		_engine = create_engine("sqlite:///%s" % 
+			(os.path.join(_private, _db_database+".db")))
 	else:
 		pref = (_db_username+":"+_db_password+"@") if _db_username and _db_password else "" 
 		suff = _db_host + (_db_port if _db_port else "") + "/" + _db_database
