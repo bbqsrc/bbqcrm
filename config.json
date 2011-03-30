@@ -4,7 +4,9 @@
 		"mail",
 		"money"
 	],
-	"sitename": "Testbed",
+	"sitename": "UTS Pirates",
+	"salt1": "jfj98",
+	"salt2": "23sav",
 
 	"db_type": "sqlite",
 	"db_database": "bbqcrm",

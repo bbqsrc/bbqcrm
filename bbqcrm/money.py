@@ -44,7 +44,6 @@ try:
 	_db_password = _config.get("db_password", None)
 	_db_host     = _config.get("db_host", "localhost")
 	_db_port     = _config.get("db_port", None)
-	_db_table    = _modname
 	if _db_engine == "sqlite":
 		_engine = create_engine("sqlite:///%s" % 
 			(os.path.join(_private, _db_database+".db")))
@@ -147,7 +146,13 @@ def get_menu():
 #-----------------#
 @route(_)
 def _finances():
-	page = "Finance"
+	page = "Money / Finances"
+	content = "<p>Todo.</p>"
+	return template_index(_root, page, content)
+
+@route(_+"/payments")
+def _payments():
+	page = "Money / Payments"
 	content = "<table>"
 	content += """
 	<tr>
@@ -235,5 +240,8 @@ def _payments_new_post():
 		p = _Payment(mid, des, d, a, date)
 		_session.add(p)
 
-		content = "<p>Payment added.</p><p><a href='%s'>Back</a></p>" % (_)
+		content = """
+			<p>Payment added.</p>
+			<p><a href='%s'>Back</a></p>
+		""" % (_+"/payments")
 		return template_index(_root, page, content)

@@ -12,23 +12,6 @@
 	</head>
 	<body>
 		<div id="wrapper">
-		<nav>
-			<ul>
-				<%
-				pref_ = None
-				if not 'pref' in locals() or pref == "":
-					pref_ = '/'
-				else:
-					pref_ = pref
-				for menu in menus:
-					generate_nav(menu[0], menu[1])
-				generate_nav(("Logout", logout), klass="right") 
-				%>
-				<li class="trigger right">
-					Logged in as ${first} ${last} (${username})
-				</li>
-			</ul>
-		</nav>
 		<header>
 			<h1>bbqCRM &mdash; ${site} / ${page}</h1>
 		</header>
@@ -47,25 +30,3 @@
 		</footer>
 	</body>
 </html>
-
-<%def name="generate_nav(title, menu=None, klass=None)">
-	% if not klass:
-	<li class="trigger">
-	% else:
-	<li class="trigger ${klass}">
-	% endif
-	% if menu:
-		<menu>
-		% for k, v in menu:
-			% if k == "-":
-			<hr />
-			% else:
-			<li><a href="${v}">${k}</a></li>
-			% endif:
-		% endfor
-		</menu>
-	% endif
-		<a href="${title[1]}">${title[0]}</a>
-	</li>
-	
-</%def>

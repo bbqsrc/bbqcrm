@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from mako.template import Template
 from mako.lookup import TemplateLookup
-from bbqcrm.core import get_menus, template_index
+from bbqcrm.core import get_menus, template_index, hash
 
 import dateutil.parser
 import datetime
@@ -43,7 +43,6 @@ try:
 	_db_password = _config.get("db_password", None)
 	_db_host     = _config.get("db_host", "localhost")
 	_db_port     = _config.get("db_port", None)
-	_db_table    = _modname
 	if _db_engine == "sqlite":
 		_engine = create_engine("sqlite:///%s" % 
 			(os.path.join(_private, _db_database+".db")))
@@ -212,6 +211,7 @@ def _add():
 		<tr>
 			<td>Student ID:</td>
 			<td><input name="student_id" type="text" /></td>
+		</tr>
 		<tr>
 			<td>Given name:</td>
 			<td><input name="firstname" type="text" /></td>
@@ -273,7 +273,149 @@ def _add():
 
 @route(_+"/modify/:num")
 def _modify(num):
-	pass
+	page = "Membership / Modify Member"
+	q = _session.query(_Member).filter(_Member.id==num).all()
+	member = None
+	if len(q) < 1:
+		content = """
+			<p>Member doesn't exist.</p><br />
+			<p><a href="%s">Back</a></p>
+		""" % _
+		return index_template(_root, page, content)
+	else:
+		member = q[0]
+	
+	opts = ""
+	q = _session.query(_Membership_Type).all()
+	for i in q:
+		opts += "<option value='%s'>%s</option>\n" % (i.type, i.type)
+	
+	form = """
+	<form id="modify_user" action="%s" method="POST">
+	<input name="num" type="hidden" value="%s" />
+	<table>
+	""" % ((_+"/modify"), num)
+	form += """
+		<tr>
+			<td>Username:</td>
+			<td><input name="username" type="text" value="%s" /></td>
+		</tr>
+	""" % member.username
+	form += """
+		<tr>
+			<td>Password:</td>
+			<td><input name="password" type="password" /> 
+			(Leave blank unless changing password)
+			</td>
+		</tr>
+		<tr><td><br/></td></tr>
+	""" 
+	form += """
+		<tr>
+			<td>Student ID:</td>
+			<td><input name="student_id" type="text" value="%s" /></td>
+		</tr>
+	""" % member.student_id
+	form += """
+		<tr>
+			<td>Given name:</td>
+			<td><input name="firstname" type="text" value="%s" /></td>
+		</tr>
+	""" % member.firstname
+	form += """
+		<tr>
+			<td>Surname:</td>
+			<td><input name="lastname" type="text" value="%s" /></td>
+		</tr>
+	""" % member.lastname
+	form += """
+		<tr>
+			<td>Address:</td>
+			<td><input name="address1" type="text" value="%s" /></td>
+		</tr>
+	""" % member.address1
+	form += """
+		<tr>
+			<td></td>
+			<td><input name="address2" type="text" value="%s" /></td>
+		</tr>
+	""" % member.address2
+	form += """
+		<tr>
+			<td>Suburb:</td>
+			<td><input name="suburb" type="text" value="%s" /></td>
+		</tr>
+	""" % member.suburb
+	form += """
+		<tr>
+			<td>State:</td>
+			<td><input name="state" type="text" value="%s" /></td>
+		</tr>
+	""" % member.state
+	form += """
+		<tr>
+			<td>Postcode:</td>
+			<td><input name="postcode" type="text" value="%s" /></td>
+		</tr>
+		<tr><td><br/></td></tr>
+	""" % member.postcode
+	form += """
+		<tr>
+			<td>Home phone (optional):</td>
+			<td><input name="homephone" type="text" value="%s" /></td>
+		</tr>
+	""" % member.homephone
+	form += """
+		<tr>
+			<td>Mobile phone:</td>
+			<td><input name="mobile" type="text" value="%s" /><br/></td>
+		</tr>
+	""" % member.mobile
+	form += """
+		<tr>
+			<td>Email:</td>
+			<td><input name="email" type="text" value="%s" /><br/></td>
+		</tr>
+		<tr><td><br/></td></tr>
+	""" % member.email
+	form += """
+		<tr>
+			<td>Membership Type:</td>
+			<td>
+				<select name="type">
+					%s
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><input name="submit" type="submit" value="Modify" /></td>
+		</tr>
+	</table>
+	</form>
+	""" % (opts)
+	return template_index(_root, page, form)
+
+@post(_+"/modify")
+def _modify_post():
+	num = request.forms.get("num")
+	q = _session.query(_Member).filter(_Member.id==num).all()
+	m = q[0]
+	for key, value in request.forms.items():
+		print("%s: %s"%(key, value))
+		if key == "password" and value.strip() != "" or value != None:
+			#TODO HASH ME LIGHTLY
+			setattr(m, key, hash(value))
+		elif key != "submit":
+			setattr(m, key, value)
+	_session.add(m)
+
+	page = "Membership / Modify Member"
+	content = """
+		<p>Member modified successfully.</p>
+		<br />
+		<a href='%s'>Back</a>
+		""" % _
+	return template_index(_root, page, content)
 
 @route(_+"/delete/:num")
 def _delete_num(num):
@@ -321,8 +463,10 @@ def _delete_post():
 def _add_post():
 	m = _Member()
 	for key, value in request.forms.items():
-		if key != "submit":
-			vars(m)[key] = value
+		if key == "password":
+			setattr(m, key, hash(value))	
+		elif key != "submit":
+			setattr(m, key, value)
 	_session.add(m)
 
 	page = "Membership / Add Member"

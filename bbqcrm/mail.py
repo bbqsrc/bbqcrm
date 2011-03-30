@@ -48,7 +48,6 @@ try:
 	_db_password = _config.get("db_password", None)
 	_db_host     = _config.get("db_host", "localhost")
 	_db_port     = _config.get("db_port", None)
-	_db_table    = _modname
 	if _db_engine == "sqlite":
 		_engine = create_engine("sqlite:///%s" % 
 			(os.path.join(_private, _db_database+".db")))
