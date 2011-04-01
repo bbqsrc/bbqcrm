@@ -6,13 +6,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from mako.template import Template
 from mako.lookup import TemplateLookup
 from bbqcrm.core import get_menus, template_index
-from email.mime.text import MIMEText
 
-import smtplib
 import datetime
 import json
 import os, os.path
 
+
+#-----------------#
+# Private globals #
+#-----------------#
 _config = None
 _path = os.path.dirname(os.path.abspath(os.path.join(__file__, "..")))
 try:
@@ -32,8 +34,8 @@ _enabled_modules = _config.get("modules", [])
 _static    = _config.get("static", _private+"/static")
 _site      = _config.get("sitename", "Untitled")
 
-_modconf = _config.get("Mail", {})
-_modname = _modconf.get("modname", "mail")
+_modconf = _config.get("Logging", {})
+_modname = _modconf.get("modname", "logging")
 
 _smtp_host = _modconf.get("smtp_host") 
 _smtp_port = _modconf.get("smtp_port", 25)
@@ -65,89 +67,15 @@ _SqlBase = declarative_base()
 _SqlBase.metadata.bind = _engine
 _SqlBase.metadata.create_all()
 
-#-----------------#
-# Public Methods  #
-#-----------------#
 def get_menu():
-	return ("Mail", _), (
-		('Mail status', _),
-		('Mailing lists', _ + '/lists'),
-		('Manage mail', _ + '/manage'),
-		('Queue mail', _ + '/queue')
+	return ("Logging", _), (
+		('Logs', _),
+		('Settings', _ + '/settings')
 	)
 
-#-----------------#
-#     Classes     #
-#-----------------#
-class _Mailing_List(_SqlBase):
-	__tablename__ = "mailing_lists"
-
-	id = Column(Integer, primary_key=True)
-
-	def __init__(self):
-		pass
-
-class _Mail(_SqlBase):
-	__tablename__ = "mail"
-	
-	id = Column(Integer, primary_key=True)
-
-	def __init__(self):
-		pass
-
-#-----------------#
-# Private Methods #
-#-----------------#
 @route(_)
-def _mail():
-	t = _lookup.get_template('index.txt')
-	page = "Mail"
-	content = "<p>Not here yet. Add some status tables, etc.</p>"
-	out = t.render(pref=_root, site=_site, page=page, 
-		menus=get_menus(), content=content)
-	return out
+def _logging():
+	pass
 
-@route(_ + '/lists')
-def _manage_lists():
-	t = _lookup.get_template('index.txt')
-	page = "Mail / Mailing Lists"
-	content = "<p>Add lists!</p>"
-	out = t.render(pref=_root, site=_site, page=page, 
-		menus=get_menus(), content=content)
-	return out
-	
-@route(_ + '/manage')
-def _manage_mail():
-	t = _lookup.get_template('index.txt')
-	page = "Mail / Manage Mail"
-	content = """
-	<nav><ul>
-		<li class="trigger">
-		<menu>
-			<li><a href="#">Test</a></li>
-		</menu>
-		Test!
-		</li>
-	</ul></nav>
-	"""
-	out = t.render(pref=_root, site=_site, page=page, 
-		menus=get_menus(), content=content)
-	return out
-
-def _test_mail():
-	here = "brendan.bbqsrc@gmail.com"
-	there = "brendan@bbqsrc.net"
-	msg = MIMEText("This is a test email. It is satisfactory.")
-	msg['Subject'] = "Satisfactory Test Email"
-	msg['From'] = here
-	msg['To'] = there
-
-	s = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-	import sys
-	#if sys.version_info < (3,0,0):
-	#	input = raw_input
-	u = input("Username>")
-	p = input("Password>")
-	s.login(u, p)
-	s.sendmail(here, [there], msg.as_string())
-	s.quit()
+@route(_+'/settings')
+	pass

@@ -126,6 +126,7 @@ class _Payment(_SqlBase):
 			raise AttributeError("Neither credit nor debit chosen.")
 		if not date:
 			self.date = datetime.datetime.now()
+		else: self.date = date
 	
 _SqlBase.metadata.create_all()
 _session = _Session()
@@ -230,14 +231,19 @@ def _payments_new(num=""):
 @post(_+"/payments/new")
 def _payments_new_post():
 		page = "Money / Add Payment"
-		mid = request.forms.get("member_id")
-		des = request.forms.get("description")
-		d = request.forms.get("dir").strip()
-		a = request.forms.get("amount")
-		date = request.forms.get("date")
+		try: 
+			mid = request.forms.get("member_id")
+			des = request.forms.get("description").strip()
+			d = request.forms.get("dir").strip()
+			a = request.forms.get("amount")
+			dt = request.forms.get("date")
+			dt = dateparser.parse(dt)
+		except:
+			return "TODO THIS AN ERROR"
+
 		for k, v in request.forms.items():
 			print("%s: %s" % (k, v))
-		p = _Payment(mid, des, d, a, date)
+		p = _Payment(mid, des, d, a, dt)
 		_session.add(p)
 
 		content = """

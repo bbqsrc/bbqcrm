@@ -34,6 +34,7 @@ from mako.template import Template
 from mako.lookup import TemplateLookup
 from hashlib import sha1
 
+import logging
 import importlib
 import bottle
 import json
@@ -136,11 +137,27 @@ class _Member(_SqlBase):
 _SqlBase.metadata.create_all()
 _session = _Session()
 
+#init logging
+
 #-----------------#
 # Public Methods  #
 #-----------------#
+def syslog_msg(msg):
+	syslog = logging.FileHandler(os.path.join(_private, 'bbqcrm.log'))
+	syslog.setLevel(logging.INFO)
+	syslog.setFormatter(logging.Formatter(_fmt_template, _fmt_date))
+	logging.getLogger('').addHandler(syslog)
+	logging.getLogger('').info(msg)
+	logging.getLogger('').removeHandler(syslog)
+
 def get_menus():
 	return _get_menus()
+
+def get_session():
+	return request.environ.get('beaker.session')
+
+def get_ip():
+	return request.get("REMOTE_ADDR")	
 
 def hash(msg):
 	return str(sha1((_salt1+msg+_salt2).encode('utf-8')).hexdigest())	
@@ -196,7 +213,6 @@ def template_index(root, page, content):
 #-----------------#
 def auth_check():
 	session = request.environ.get('beaker.session')
-	print(session)
 	if not (session and 'username' in session):
 		return False
 	return True
@@ -240,7 +256,9 @@ def _login_post():
 		if len(p) > 0 and p[0].password == hash(passwd):
 			session['username'] = user
 			session.save()
+			get_logger('core').info("User '%s' successfully logged in." % user)
 			redirect(_+"/")
+	get_logger('core').warning("Invalid login attempt for user '%s'." % user)
 	return login("Invalid input. Try again.")
 
 @get(_root + '/static/:filename')
@@ -250,13 +268,51 @@ def _server_static(filename):
 #-----------------#
 #    Post Init    #
 #-----------------#
+
+class _ConnInfo(logging.Filter):
+	def __getitem__(self, nom):
+		if nom == "ip":
+			return get_ip()
+		elif nom == "user":	
+			session = get_session()
+			if not (session and 'username' in session):
+				return None
+			return session['username']
+
+	def __iter__(self):
+		keys = ["ip", "user"]
+		#keys.extend(self.__dict__.keys())
+		return keys.__iter__()
+
+_fmt_template = '[%(levelname)s] - [%(asctime)s]: (%(name)s) %(message)s'
+_fmt_ip_template = _fmt_template.replace('-', '%(ip)s - %(user)s -')
+_fmt_date = '%d/%m/%Y %T'
+_fmt = logging.Formatter(_fmt_ip_template, _fmt_date)
+
+_filelog = logging.FileHandler(os.path.join(_private, 'bbqcrm.log'))
+_filelog.setFormatter(_fmt)
+_filelog.addFilter(_ConnInfo())
+_filelog.setLevel(logging.INFO)
+
+_console = logging.StreamHandler()
+_console.setFormatter(_fmt)
+_console.addFilter(_ConnInfo())
+_console.setLevel(logging.DEBUG)
+
+logging.getLogger('').addHandler(_filelog)
+logging.getLogger('').addHandler(_console)
+
+def get_logger(x=''):
+	logger = logging.getLogger(x)
+	logger.setLevel(logging.DEBUG)
+	return logging.LoggerAdapter(logger, _ConnInfo())
+
 _modules = []
 try:
 	for m in _enabled_modules:
 		_modules.append(importlib.import_module('..'+m, 'bbqcrm.core'))
 except:
 	raise
-
 #-----------------#
 #  Main function  #
 #-----------------#
@@ -276,8 +332,67 @@ def main():
 		}
 		application = SessionMiddleware(application, session_opts)
 		bottle.Response.content_type = "application/xhtml+xml; charset=UTF-8"
+		get_logger("System").info("bbqcrm started.")
 		bottle.run(host='0.0.0.0', port=8080, app=application)
+		get_logger("System").info("bbqcrm shut down.")
 
 if __name__ == "__main__":
 	main()
+
+def first_run():
+	# TODO try to load config.json for prefilling, especally for database
+	# save out db settings to json
+	content = """
+	<p>It appears that this is your first run of bbqCRM!</p>
+	<p>In order to make the most of bbqCRM, I have a few questions for you.</p>
+	<form action="%s" method="POST">
+		<table>
+			<tr>
+				<td colspan="2">
+					<h2>Administration</h2>
+				</td>
+			<tr>
+				<td>Admin username:</td>
+				<td><input type="text" name="username" /></td>
+			</tr>
+			<tr>
+				<td>Admin password:</td>
+				<td><input type="password" name="password" /></td>
+			</tr>
+			<tr>
+				<td>Website name:</td>
+				<td><input type="text" name="webname" /></td>
+			</tr>
+			<tr>
+				<td>Modules:</td>
+				<td>None optional (yet)</td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<h2>Email Settings</h2>
+				</td>
+			</tr>
+			<tr>
+				<td>SMTP Host:</td>
+				<td><input type="text" name="smtp_host" /></td>
+			</tr>
+			<tr>
+				<td>SMTP Port:</td>
+				<td><input type="text" name="smtp_port" /></td>
+			</tr>
+			<tr>
+				<td>SMTP SSL:</td>
+				<td><input type="checkbox" name="smtp_ssl" value="true" /></td>
+			</tr>
+			<tr>
+				<td>SMTP Username (if required):</td>
+				<td><input type="text" name="smtp_user" /></td>
+			</tr>
+			<tr>
+				<td>SMTP Password (if required):</td>
+				<td><input type="password" name="smtp_pass" /></td>
+			</tr>
+		</table>
+	</form>
+	"""
 

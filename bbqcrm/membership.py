@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from mako.template import Template
 from mako.lookup import TemplateLookup
-from bbqcrm.core import get_menus, template_index, hash
+from bbqcrm.core import get_menus, template_index, hash, get_logger
 
 import dateutil.parser
 import datetime
@@ -56,6 +56,8 @@ except:
 _Session = sessionmaker(bind=_engine, autoflush=True, autocommit=True)
 _SqlBase = declarative_base()
 _SqlBase.metadata.bind = _engine
+
+_logger = get_logger('membership')
 
 #-----------------#
 #     Classes     #
@@ -398,13 +400,14 @@ def _modify(num):
 @post(_+"/modify")
 def _modify_post():
 	num = request.forms.get("num")
+	_logger.debug("Attempting to modify member '%s'" % num)
 	q = _session.query(_Member).filter(_Member.id==num).all()
 	m = q[0]
 	for key, value in request.forms.items():
 		print("%s: %s"%(key, value))
-		if key == "password" and value.strip() != "" or value != None:
-			#TODO HASH ME LIGHTLY
+		if key == "password" and (value.strip() != "" or value != None):
 			setattr(m, key, hash(value))
+		#TODO HASH ME LIGHTLY
 		elif key != "submit":
 			setattr(m, key, value)
 	_session.add(m)
@@ -415,6 +418,7 @@ def _modify_post():
 		<br />
 		<a href='%s'>Back</a>
 		""" % _
+	_logger.info("Member '%s' modified." % num)
 	return template_index(_root, page, content)
 
 @route(_+"/delete/:num")
@@ -456,6 +460,7 @@ def _delete_post():
 		content = "<p>How did you get here?</p>"
 	content += "<p><a href='%s'>Membership</a></p>" % (_)
 	page = "Membership / Delete Member"
+	_logger.info("Member '%s' deleted." % num)
 	return template_index(_root, page, content)
 
 
@@ -475,6 +480,7 @@ def _add_post():
 		<br />
 		<a href='%s'>Back</a>
 		""" % _
+	_logger.info("Member added.")
 	return template_index(_root, page, content)
 
 @route(_+"/types")
@@ -536,6 +542,7 @@ def _types_add():
 		content = "<p>'%s' added successfully.</p>\n" % t
 	content += "<p><a href='%s'>Back</a></p>" % (_ + "/types")
 	page = "Membership / Manage Membership Types / Add"
+	_logger.info("New membership type '%s' added." % t) 
 	return template_index(_root, page, content)
 
 @route(_+"/remove")
